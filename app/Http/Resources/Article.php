@@ -16,4 +16,11 @@ class Article extends JsonResource
     {
         return parent::toArray($request);
     }
+    public function with($request) {
+        return [
+            'version' => '1.0.0',
+            'author_url' => url('http://google.com'),
+            'type' => 'success'
+        ];
+    }
 }
