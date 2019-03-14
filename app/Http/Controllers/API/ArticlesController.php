@@ -60,9 +60,10 @@ class ArticlesController extends Controller
         $article->tag = $request->input('tag');
         $article->body = $request->input('body');
         $article->views = $request->isMethod('put')?$article->views:0;
-
+        
         //Modify this later
-        $article->created_by = $request->input('user_id');
+        $article->user_id = $request->isMethod('put')?$article->user_id:'System';
+        //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
         if($article->save())
             return [
                 'type' => 'success',

@@ -18,7 +18,7 @@ class CreateArticlesTable extends Migration
             $table->string('title');
             $table->string('tag');
             $table->mediumText('body');
-            $table->string('created_by');
+            $table->integer('user_id');
             $table->integer('views')->unsigned();
             $table->timestamps();
         });
