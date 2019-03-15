@@ -62,7 +62,7 @@ class ArticlesController extends Controller
         $article->views = $request->isMethod('put')?$article->views:0;
         
         //Modify this later
-        $article->user_id = $request->isMethod('put')?$article->user_id:'System';
+        $article->user_id = $request->isMethod('put')?$article->user_id:'0';
         //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
         if($article->save())
             return [
