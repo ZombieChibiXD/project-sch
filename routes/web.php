@@ -18,3 +18,19 @@ Route::get('/', function () {
 Route::get('/{any}', function () {
     return view('welcome');
 });
+Route::get('img/{filename}', function ($filename)
+{
+    $path = storage_path('app/public/cover_images/' . $filename);
+
+    if (!File::exists($path)) {
+        abort(404);
+    }
+
+    $file = File::get($path);
+    $type = File::mimeType($path);
+
+    $response = Response::make($file, 200);
+    $response->header("Content-Type", $type);
+
+    return $response;
+});
