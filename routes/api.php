@@ -17,11 +17,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('articles', 'api\ArticlesController@index');
-Route::get('articles/tag/{tag}', ['uses' =>'api\SArticlesController@tag']);
+Route::get('articles', 'api\ArticlesController@index'); //show all
+Route::get('articles/tag/{tag}', ['uses' =>'api\SArticlesController@tag']); //show all base on tags
 
-Route::get('article/{id}', 'api\ArticlesController@show');
+Route::get('article/{id}', 'api\ArticlesController@show'); //show id only
 
-Route::post('article', 'api\ArticlesController@store');
-Route::put('article', 'api\ArticlesController@store');
-Route::delete('article/{id}', 'api\ArticlesController@destroy');
+Route::post('article', 'api\ArticlesController@store'); //create article
+Route::put('article', 'api\ArticlesController@store'); //edit article
+Route::delete('article/{id}', 'api\ArticlesController@destroy'); //delete article
