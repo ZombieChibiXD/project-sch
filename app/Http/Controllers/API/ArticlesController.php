@@ -54,20 +54,47 @@ class ArticlesController extends Controller
      */
     public function store(Request $request)
     {
-        $article = $request->isMethod('put') ? Article::findOrFail($request->input('article_id')) : new Article;
+        $isUpdate = $request->isMethod('put');      //For efficiency reasons to make this var
+        $this->validate($request, [
+            'title' => 'required',
+            'body' => 'required',
+            'cover_image' => 'image|nullable|max:2999'
+        ]);
+        
+
+        // Handle File Upload
+        if($request->hasFile('cover_image')){
+            // Get filename with the extension
+            $filenameWithExt = $request->file('cover_image')->getClientOriginalName();
+            // Get just filename
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            // Get just ext
+            $extension = $request->file('cover_image')->getClientOriginalExtension();
+            // Filename to store
+            $fileNameToStore= $filename.'_'.time().'.'.$extension;
+            // Upload Image
+            $path = $request->file('cover_image')->storeAs('public/cover_images', $fileNameToStore);
+        } else {
+            if(!$isUpdate){     // If not update
+                $fileNameToStore = 'noimage.jpg';
+            }
+        }
+
+        $article = $isUpdate ? Article::findOrFail($request->input('article_id')) : new Article;
         $article->id = $request->input('article_id');
         $article->title = $request->input('title');
         $article->tag = $request->input('tag');
         $article->body = $request->input('body');
-        $article->views = $request->isMethod('put')?$article->views:0;
+        $article->views = $isUpdate ?$article->views:0;
+        $article->cover_image = $fileNameToStore;
         
         //Modify this later
-        $article->user_id = $request->isMethod('put')?$article->user_id:'0';
+        $article->user_id = $isUpdate ?$article->user_id:'0';
         //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
         if($article->save())
             return [
                 'type' => 'success',
-                'message' => $request->isMethod('put')?'Post has been Edited!':'Post has been Created!'
+                'message' => $isUpdate ?'Post has been Edited!':'Post has been Created!'
             ];
         //Idea
         //return $article->save()?

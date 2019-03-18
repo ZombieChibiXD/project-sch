@@ -1,6 +1,8 @@
 /node_modules
 /public/hot
-/public/storage
+/public/storage/*
+/public/storage/cover_images/*
+!/public/storage/cover_images/noimage.jpg
 /storage/*.key
 /vendor
 .env
