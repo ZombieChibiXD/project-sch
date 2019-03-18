@@ -13,6 +13,7 @@
       <div class="container">
     <div class="jumbotron mt-5">
             <h1 class="display-3">Website under building...</h1>
+            <img src="{{ asset('storage/cover_images/noimage.jpg') }}">
             <p class="lead">This is unfinished website I guess?</p>
             <hr class="my-2">
             <p>Still waiting for that guy to study Vue.JS, so now we're stuck on handling the backen'</p>

@@ -20,6 +20,7 @@ class CreateArticlesTable extends Migration
             $table->mediumText('body');
             $table->integer('user_id');
             $table->integer('views')->unsigned();
+            $table->string('cover_image');
             $table->timestamps();
         });
     }
