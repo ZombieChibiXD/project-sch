@@ -16,3 +16,4 @@ run in console `php artisan key:generate`
 
 create database ("prjsch" is recommended)
 run in console `php artisan migrate`
+run in console `php artisan passport:install`
