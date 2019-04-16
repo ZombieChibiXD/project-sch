@@ -51,12 +51,12 @@ class AuthController extends Controller
     {
 
         $request->validate([
-            'credentials' => 'required|string',
+            'credential' => 'required|string',
             'password' => 'required|string',
             'remember_me' => 'boolean'
         ]);
         
-        $login = request()->input('credentials'); 
+        $login = request()->input('credential'); 
         $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username'; 
         request()->merge([$fieldType => $login]);
 
