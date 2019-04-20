@@ -22,13 +22,30 @@ class AuthController extends Controller
             'name' => 'required|string',
             'email' => 'required|string|email|unique:users',
             'username' => 'required|string|unique:users',
-            'password' => 'required|string|confirmed'
+            'password' => 'required|string|confirmed',
+            'user_image' => 'image|nullable|max:2999'
         ]);
+        if($request->hasFile('user_image')){
+            // Get filename with the extension
+            $filenameWithExt = $request->file('user_image')->getClientOriginalName();
+            // Get just filename
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            // Get just ext
+            $extension = $request->file('user_image')->getClientOriginalExtension();
+            // Filename to store
+            $fileNameToStore= $filename.'_'.time().'.'.$extension;
+            // Upload Image
+            $path = $request->file('user_image')->storeAs('public/user_images', $fileNameToStore);
+        } else {
+            $fileNameToStore = 'noimage.jpg';
+        }
+
         $user = new User([
             'name' => $request->name,
             'email' => $request->email,
             'username' => $request->username,
-            'password' => bcrypt($request->password)
+            'password' => bcrypt($request->password),
+            'user_image' => $fileNameToStore
         ]);
         $user->save();
         return response()->json([
