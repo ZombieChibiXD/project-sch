@@ -9,6 +9,7 @@ use App\Http\Resources\Article as ArticleResource;
 
 class ArticlesController extends Controller
 {
+    private $pagination_limit = 10;
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +17,7 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        $article = Article::orderBy('created_at','desc')->paginate(6);
+        $article = Article::orderBy('created_at','desc')->paginate($pagination_limit);
         return ArticleResource::collection($article);
     }
     public function tag($tag)
@@ -25,22 +26,20 @@ class ArticlesController extends Controller
         $article = "";
         switch($tag){
             case 'all':         
-                $article = Article::orderBy('created_at','desc')->paginate(6);
+                $article = Article::orderBy('created_at','desc')->paginate($pagination_limit);
                 break;
             case 'popular':     
-                $article = Article::orderBy('created_at','desc')->where('tag','popular')->paginate(6);
+                $article = Article::orderBy('created_at','desc')->orderBy('views','desc')->paginate($pagination_limit);
                 break;
             case 'sports':      
-                $article = Article::orderBy('created_at','desc')->where('tag','sports')->paginate(6);
+                $article = Article::orderBy('created_at','desc')->where('tag','sports')->paginate($pagination_limit);
                 break;
             case 'politics':    
-                $article = Article::orderBy('created_at','desc')->where('tag','politics')->paginate(6);
+                $article = Article::orderBy('created_at','desc')->where('tag','politics')->paginate($pagination_limit);
                 break;
-            default:            
-                return [
-                    'type'=>'error',
-                    'message'=>'Tag not Found!'                                    
-                ];          
+            default:  
+                $article = Article::orderBy('created_at','desc')->where('tag',$tag)->paginate($pagination_limit);
+
         }
         return ArticleResource::collection($article);
     }
@@ -91,20 +90,19 @@ class ArticlesController extends Controller
         //Modify this later
         $article->user_id = $isUpdate ?$article->user_id:'0';
         //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
+        $HTTP_response_code = $isUpdate ? 200:201;
+        $HTTP_response_message = $isUpdate ?'Post has been Edited!':'Post has been Created!';
         if($article->save())
-            return [
+            return response()->json([
                 'type' => 'success',
-                'message' => $isUpdate ?'Post has been Edited!':'Post has been Created!'
-            ];
-        //Idea
-        //return $article->save()?
-                                //[
-                                    //'type'=>'success',
-                                    //'message'=>$request->isMethod('put')?'Post edited!':'Post Created!'
-                                // ]:[
-                                //     'type'=>'error',
-                                //     'message'=>'Request Failed!'                                    
-                                // ];
+                'message' => $HTTP_response_message
+            ], $HTTP_response_code);
+        else {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Action failed'
+            ], 409);
+        }
     }
 
     /**
@@ -117,6 +115,8 @@ class ArticlesController extends Controller
     {
         // Get article
         $article = Article::findOrFail($id);
+        $article->views = $article->views+1;
+        $article->save();
 
         return new ArticleResource($article);
     }
@@ -145,7 +145,16 @@ class ArticlesController extends Controller
         $article = Article::findOrFail($id);
         // Deletes it
         if($article->delete()) {
-            return new ArticleResource($article);
+            return response()->json([
+                'type' => 'success',
+                'message' => 'Article Deleted'
+            ], 200);
+        }
+        else {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Delete failed'
+            ], 409);
         }
     }
 }

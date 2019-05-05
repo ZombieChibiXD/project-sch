@@ -33,7 +33,7 @@ class AuthController extends Controller
             // Get just ext
             $extension = $request->file('user_image')->getClientOriginalExtension();
             // Filename to store
-            $fileNameToStore= $filename.'_'.time().'.'.$extension;
+            $fileNameToStore= md5($filename.'_'.time()).'_'.time().'.'.$extension;
             // Upload Image
             $path = $request->file('user_image')->storeAs('public/user_images', $fileNameToStore);
         } else {
@@ -124,5 +124,51 @@ class AuthController extends Controller
         $respond = $request->user();
         $respond->status = '200';
         return response()->json($respond);
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => 'nullable|string',
+            'email' => 'nullable|string|email|unique:users',
+            'password' => 'nullable|string|min:6|confirmed',
+            'user_image' => 'image|nullable|max:2999'
+        ]);
+        $oldUserData = $request->user();
+        $newUserData = User::findOrFail($oldUserData->id);
+        $updateImage = false;
+        if($request->hasFile('user_image')){
+            $updateImage = true;
+            // Get filename with the extension
+            $filenameWithExt = $request->file('user_image')->getClientOriginalName();
+            // Get just filename
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            // Get just ext
+            $extension = $request->file('user_image')->getClientOriginalExtension();
+            // Filename to store
+            $fileNameToStore= md5($filename.'_'.time()).'_'.time().'.'.$extension;
+            // Upload Image
+            $path = $request->file('user_image')->storeAs('public/user_images', $fileNameToStore);
+        }
+
+        $newUserData->name      = $request->name ? $request->name : $oldUserData->name;
+        $newUserData->email     = $request->email ? $request->email : $oldUserData->email;
+        $newUserData->password  = $request->password ? bcrypt($request->password) : $oldUserData->password;
+        $newUserData->user_image= $updateImage ? $fileNameToStore : $oldUserData->user_image;
+        
+        // return response()->json($newUserData, 200);
+
+        if($newUserData->save()){
+            return response()->json([
+                'message' => 'Successfully updated user!',
+                'status'=>'200'
+            ], 200);
+        }
+        else{
+            return response()->json([
+                'message' => 'Failed updating user!',
+                'status'=>'409'
+            ], 409);
+        }
     }
 }
