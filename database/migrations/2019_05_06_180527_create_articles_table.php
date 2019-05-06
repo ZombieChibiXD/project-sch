@@ -18,6 +18,7 @@ class CreateArticlesTable extends Migration
             $table->string('title');
             $table->string('tag');
             $table->mediumText('body');
+            $table->string('content');
             $table->integer('user_id');
             $table->integer('views')->unsigned();
             $table->string('cover_image');

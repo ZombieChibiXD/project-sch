@@ -20,7 +20,7 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        $article = Article::orderBy('created_at','desc')->paginate(10);
+        $article = Article::select('id','title','content','cover_image','tag')->orderBy('created_at','desc')->paginate(10);
         return ArticleResource::collection($article);
     }
     public function tag($tag)
@@ -79,7 +79,7 @@ class ArticlesController extends Controller
                 $path = $request->file('cover_image')->storeAs('public/img/cover_images', $fileNameToStore);
             } else {
                 if(!$isUpdate){     // If not update
-                    $fileNameToStore = 'noimage.jpg';
+                    $fileNameToStore = 'no_image.jpg';
                 }
             }
             
@@ -90,7 +90,9 @@ class ArticlesController extends Controller
             $article->body = $request->input('body');
             $article->views = $isUpdate ?$article->views:0;
             $article->cover_image = $fileNameToStore;
-            
+            $parsedHTML = html_entity_decode(strip_tags($article->body));
+            $article->content = strlen($parsedHTML) > 180 ? substr($parsedHTML,0,180)."..." :
+                                $parsedHTML;
             $oldId = $article->user_id;
             //Modify this later
             $article->user_id = $isUpdate ?$article->user_id:$user->id;

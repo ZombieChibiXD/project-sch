@@ -37,7 +37,7 @@ class AuthController extends Controller
             // Upload Image
             $path = $request->file('user_image')->storeAs('public/img/user_images', $fileNameToStore);
         } else {
-            $fileNameToStore = 'noimage.jpg';
+            $fileNameToStore = 'no_image.jpg';
         }
 
         $user = new User([
