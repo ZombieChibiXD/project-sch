@@ -74,9 +74,9 @@ class ArticlesController extends Controller
                 // Get just ext
                 $extension = $request->file('cover_image')->getClientOriginalExtension();
                 // Filename to store
-                $fileNameToStore= $filename.'_'.time().'.'.$extension;
+                $fileNameToStore= time().'_'.$filename.'.'.$extension;
                 // Upload Image
-                $path = $request->file('cover_image')->storeAs('public/cover_images', $fileNameToStore);
+                $path = $request->file('cover_image')->storeAs('public/img/cover_images', $fileNameToStore);
             } else {
                 if(!$isUpdate){     // If not update
                     $fileNameToStore = 'noimage.jpg';

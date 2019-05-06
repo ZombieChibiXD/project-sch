@@ -33,9 +33,9 @@ class AuthController extends Controller
             // Get just ext
             $extension = $request->file('user_image')->getClientOriginalExtension();
             // Filename to store
-            $fileNameToStore= md5($filename.'_'.time()).'_'.time().'.'.$extension;
+            $fileNameToStore= time().'_'.md5($filename.'_'.time()).'.'.$extension;
             // Upload Image
-            $path = $request->file('user_image')->storeAs('public/user_images', $fileNameToStore);
+            $path = $request->file('user_image')->storeAs('public/img/user_images', $fileNameToStore);
         } else {
             $fileNameToStore = 'noimage.jpg';
         }
@@ -146,9 +146,9 @@ class AuthController extends Controller
             // Get just ext
             $extension = $request->file('user_image')->getClientOriginalExtension();
             // Filename to store
-            $fileNameToStore= md5($filename.'_'.time()).'_'.time().'.'.$extension;
+            $fileNameToStore= time().'_'.md5($filename.'_'.time()).'.'.$extension;
             // Upload Image
-            $path = $request->file('user_image')->storeAs('public/user_images', $fileNameToStore);
+            $path = $request->file('user_image')->storeAs('public/img/user_images', $fileNameToStore);
         }
 
         $newUserData->name      = $request->name ? $request->name : $oldUserData->name;

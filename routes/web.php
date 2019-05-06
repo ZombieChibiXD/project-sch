@@ -18,9 +18,9 @@ Route::get('/', function () {
 Route::get('/{any}', function () {
     return view('welcome');
 });
-Route::get('img/{filename}', function ($filename)
+Route::get('img/{paths}/{filename}', function ($paths,$filename)
 {
-    $path = storage_path('app/public/cover_images/' . $filename);
+    $path = storage_path('app/public/img/' . $paths . '/' . $filename);
 
     if (!File::exists($path)) {
         abort(404);
