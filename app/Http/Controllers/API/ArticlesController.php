@@ -32,7 +32,7 @@ class ArticlesController extends Controller
                 $article = Article::orderBy('created_at','desc')->paginate(10);
                 break;
             case 'popular':     
-                $article = Article::orderBy('created_at','desc')->orderBy('views','desc')->paginate(10);
+                $article = Article::orderByRaw('DATE(created_at)')->orderBy('views','desc')->paginate(10);
                 break;
             case 'sports':      
                 $article = Article::orderBy('created_at','desc')->where('tag','sports')->paginate(10);
