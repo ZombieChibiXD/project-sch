@@ -23,7 +23,8 @@ Route::get('articles/tag/{tag}', ['uses' =>'api\ArticlesController@tag']); //sho
 Route::get('article/{id}', 'api\ArticlesController@show'); //show id only
 
 Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //create article
-Route::put('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
+// Route::put('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
+Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
 Route::delete('article/{id}', 'api\ArticlesController@destroy')->middleware('auth:api'); //delete article
 
 

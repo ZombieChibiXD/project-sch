@@ -56,13 +56,13 @@ class ArticlesController extends Controller
      */
     public function store(Request $request)
     {
-        $isUpdate = $request->isMethod('put');      //For efficiency reasons to make this var
+        $isUpdate = $request->input('article_id') > 0 ? true : false;      //For efficiency reasons to make this var
         $this->validate($request, [
             'title' => 'required',
             'body' => 'required',
             'cover_image' => 'image|nullable|max:2999'
         ]);
-        
+        $fileNameToStore = null;
         $user= $request->user();
         if($user->id>0){
             // Handle File Upload
@@ -89,17 +89,19 @@ class ArticlesController extends Controller
             $article->tag = $request->input('tag');
             $article->body = $request->input('body');
             $article->views = $isUpdate ?$article->views:0;
-            $article->cover_image = $fileNameToStore;
+            if($fileNameToStore)
+                $article->cover_image = $fileNameToStore;
             $parsedHTML = html_entity_decode(strip_tags($article->body));
             $article->content = strlen($parsedHTML) > 180 ? substr($parsedHTML,0,180)."..." :
                                 $parsedHTML;
             $oldId = $article->user_id;
             //Modify this later
-            $article->user_id = $isUpdate ?$article->user_id:$user->id;
+            if(!$isUpdate)
+                $article->user_id = $user->id;
             //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
             $HTTP_response_code = $isUpdate ? 200:201;
             $HTTP_response_message = $isUpdate ?'Post has been Edited!':'Post has been Created!';
-            if(($isUpdate && $oldId!=$user->id)||!$isUpdate){
+            if(($isUpdate && $oldId==$user->id)||!$isUpdate){
                 if($article->save())
                 return response()->json([
                     'type' => 'success',
