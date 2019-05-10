@@ -19,7 +19,7 @@ class Article extends JsonResource
     public function with($request) {
         return [
             'version' => '1.0.0',
-            'author_url' => url('http://google.com'),
+            'author_url' => url('http://www.zkabane.com'),
             'type' => 'success'
         ];
     }
