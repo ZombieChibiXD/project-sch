@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Article;
 use App\Http\Resources\Article as ArticleResource;
+use App\Http\Resources\Comment as CommentResource;
 
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -13,6 +14,16 @@ use App\User;
 
 class ArticlesController extends Controller
 {
+    private $user_data = null;
+    private $user_exist = null;
+    private $request = null;
+    
+    public function checkUser(Request $request) {
+        $this->request = $request;
+        $this->user_data = $this->request->user();
+        if($this->user_data)
+            $this->user_exist = $this->user_data->id > 0 ? true : false;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -20,7 +31,8 @@ class ArticlesController extends Controller
      */
     public function index()
     {
-        $article = Article::select('id','title','content','cover_image','tag')->orderBy('created_at','desc')->paginate(10);
+        $article =  Article::select('id','title','content','cover_image','tag')
+                    ->orderBy('created_at','desc')->paginate(10);
         return ArticleResource::collection($article);
     }
     public function tag($tag)
@@ -28,21 +40,28 @@ class ArticlesController extends Controller
         // This show articles base on the sort that was chosen
         $article = "";
         switch($tag){
-            case 'all':         
-                $article = Article::orderBy('created_at','desc')->paginate(10);
-                break;
-            case 'popular':     
-                $article = Article::orderByRaw('DATE(created_at)')->orderBy('views','desc')->paginate(10);
-                break;
-            case 'sports':      
-                $article = Article::orderBy('created_at','desc')->where('tag','sports')->paginate(10);
-                break;
-            case 'politics':    
-                $article = Article::orderBy('created_at','desc')->where('tag','politics')->paginate(10);
-                break;
-            default:  
-                $article = Article::orderBy('created_at','desc')->where('tag',$tag)->paginate(10);
-
+        case 'debug':         
+            $article = Article::orderBy('created_at','desc')->paginate(10);
+            break;
+        case 'all':         
+            $article =  Article::select('id','title','content','cover_image','tag')
+                        ->orderBy('created_at','desc')->paginate(10);
+            break;
+        case 'popular':     
+            $article =  Article::select('id','title','content','cover_image','tag')
+                        ->orderByRaw('DATE(created_at)')->orderBy('views','desc')->paginate(10);
+            break;
+        case 'sports':      
+            $article =  Article::select('id','title','content','cover_image','tag')
+                        ->orderBy('created_at','desc')->where('tag','sports')->paginate(10);
+            break;
+        case 'politics':    
+            $article =  Article::select('id','title','content','cover_image','tag')
+                        ->orderBy('created_at','desc')->where('tag','politics')->paginate(10);
+            break;
+        default:  
+            $article =  Article::select('id','title','content','cover_image','tag')
+                        ->orderBy('created_at','desc')->where('tag',$tag)->paginate(10);
         }
         return ArticleResource::collection($article);
     }
@@ -56,6 +75,7 @@ class ArticlesController extends Controller
      */
     public function store(Request $request)
     {
+        $this->checkUser($request);
         $isUpdate = $request->input('article_id') > 0 ? true : false;      //For efficiency reasons to make this var
         $this->validate($request, [
             'title' => 'required',
@@ -63,64 +83,66 @@ class ArticlesController extends Controller
             'cover_image' => 'image|nullable|max:2999'
         ]);
         $fileNameToStore = null;
-        $user= $request->user();
-        if($user->id>0){
-            // Handle File Upload
-            if($request->hasFile('cover_image')){
-                // Get filename with the extension
-                $filenameWithExt = $request->file('cover_image')->getClientOriginalName();
-                // Get just filename
-                $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-                // Get just ext
-                $extension = $request->file('cover_image')->getClientOriginalExtension();
-                // Filename to store
-                $fileNameToStore= time().'_'.$filename.'.'.$extension;
-                // Upload Image
-                $path = $request->file('cover_image')->storeAs('public/img/cover_images', $fileNameToStore);
-            } else {
-                if(!$isUpdate){     // If not update
-                    $fileNameToStore = 'no_image.jpg';
-                }
-            }
-            
-            $article = $isUpdate ? Article::findOrFail($request->input('article_id')) : new Article;
-            $article->id = $request->input('article_id');
-            $article->title = $request->input('title');
-            $article->tag = $request->input('tag');
-            $article->body = $request->input('body');
-            $article->views = $isUpdate ?$article->views:0;
-            if($fileNameToStore)
-                $article->cover_image = $fileNameToStore;
-            $parsedHTML = html_entity_decode(strip_tags($article->body));
-            $article->content = strlen($parsedHTML) > 180 ? substr($parsedHTML,0,180)."..." :
-                                $parsedHTML;
-            $oldId = $article->user_id;
-            //Modify this later
-            if(!$isUpdate)
-                $article->user_id = $user->id;
-            //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
-            $HTTP_response_code = $isUpdate ? 200:201;
-            $HTTP_response_message = $isUpdate ?'Post has been Edited!':'Post has been Created!';
-            if(($isUpdate && $oldId==$user->id)||!$isUpdate){
-                if($article->save())
-                return response()->json([
-                    'type' => 'success',
-                    'message' => $HTTP_response_message
-                ], $HTTP_response_code);
-                else {
-                    return response()->json([
-                        'type' => 'error',
-                        'message' => 'Action failed'
-                    ], 409);
-                }
-            }
-            else{
-                return response()->json([
-                    'message' => 'Unauthorized, belongs to other user',
-                    'status' => '401'
-                ], 401);
+        if(!$this->user_exist){
+            return response()->json(['type'=>'error','message'=>'Unauthorized (Not logged in)'], 401);
+            exit(0);
+        }
+
+        // Handle File Upload
+        if($request->hasFile('cover_image')){
+            // Get filename with the extension
+            $filenameWithExt = $request->file('cover_image')->getClientOriginalName();
+            // Get just filename
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            // Get just ext
+            $extension = $request->file('cover_image')->getClientOriginalExtension();
+            // Filename to store
+            $fileNameToStore= time().'_'.$filename.'.'.$extension;
+            // Upload Image
+            $path = $request->file('cover_image')->storeAs('public/img/cover_images', $fileNameToStore);
+        } else {
+            if(!$isUpdate){     // If not update
+                $fileNameToStore = 'no_image.jpg';
             }
         }
+        
+        $article = $isUpdate ? Article::findOrFail($request->input('article_id')) : new Article;
+        $article->title = $request->input('title');
+        $article->tag = $request->input('tag');
+        $article->body = $request->input('body');
+        if(!$isUpdate)
+            $article->views = 0;
+        if($fileNameToStore)
+            $article->cover_image = $fileNameToStore;
+        $parsedHTML = html_entity_decode(strip_tags($article->body));
+        $article->content = strlen($parsedHTML) > 180 ? substr($parsedHTML,0,180)."..." :
+                            $parsedHTML;
+        //Modify this later
+        if(!$isUpdate)
+            $article->user_id = $this->user_data->id;
+        //$article->created_by = $request->isMethod('put')?$article->created_by:auth()->user()->id;
+        $HTTP_response_code = $isUpdate ? 200:201;
+        $HTTP_response_message = $isUpdate ?'Post has been Edited!':'Post has been Created!';
+        if(($isUpdate && $this->user_data->id == $article->user_id) || !$isUpdate){
+            if($article->save())
+            return response()->json([
+                'type' => 'success',
+                'message' => $HTTP_response_message
+            ], $HTTP_response_code);
+            else {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Action failed'
+                ], 409);
+            }
+        }
+        else{
+            return response()->json([
+                'message' => 'Unauthorized, belongs to other user',
+                'status' => '401'
+            ], 401);
+        }
+        
     }
     
     /**
@@ -138,18 +160,12 @@ class ArticlesController extends Controller
 
         return new ArticleResource($article);
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    // public function update(Request $request, $id)
-    // {
-    //     //
-    // }
+    public function edit($id)
+    {
+        // Get article
+        $article = Article::findOrFail($id);
+        return new ArticleResource($article);
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -157,22 +173,49 @@ class ArticlesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
-        // Get article
-        $article = Article::findOrFail($id);
-        // Deletes it
-        if($article->delete()) {
-            return response()->json([
-                'type' => 'success',
-                'message' => 'Article Deleted'
-            ], 200);
+        // $this->user_data = $request->user();
+        // $this->user_exist = true;
+        $this->checkUser($request);
+        if($this->user_exist){
+            // Get article
+            $article = Article::findOrFail($id);
+            // Deletes it
+            if($this->user_data->id == $article->user_id || $this->user_data->level < 2){
+                if($article->delete()) {
+                    return response()->json([
+                        'type' => 'success',
+                        'message' => 'Article Deleted'
+                    ], 200);
+                }
+                else {
+                    return response()->json([
+                        'type' => 'error',
+                        'message' => 'Delete failed'
+                    ], 409);
+                }
+            }
+            else {
+                return response()->json([
+                    'type'=>'error',
+                    'message'=>'Unauthorized'
+                ], 401);
+            }
         }
         else {
             return response()->json([
-                'type' => 'error',
-                'message' => 'Delete failed'
-            ], 409);
+                'type'=>'error',
+                'message'=>'Unauthorized (Not logged in)'
+            ], 401);
         }
+    }
+    public function comments($id,Request $request)
+    {
+        $this->checkUser($request);
+        $comments = Article::findOrFail($id)->comments;
+
+        return new CommentResource($comments);
+
     }
 }

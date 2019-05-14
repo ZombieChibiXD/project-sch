@@ -1,32 +1,32 @@
 <?php
-
 use Illuminate\Http\Request;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
 Route::get('articles', 'api\ArticlesController@index'); //show all
 Route::get('articles/tag/{tag}', ['uses' =>'api\ArticlesController@tag']); //show all base on tags
-
 Route::get('article/{id}', 'api\ArticlesController@show'); //show id only
 
-Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //create article
-// Route::put('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
-Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
-Route::delete('article/{id}', 'api\ArticlesController@destroy')->middleware('auth:api'); //delete article
 
+//Modifying articles middleware
+Route::group([
+    'middleware' => 'auth:api'
+  ], function() {
+      Route::get('article/{id}/edit', 'api\ArticlesController@edit'); //show id only w/out increment
+      Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //create article
+      // Route::put('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
+      Route::post('article', 'api\ArticlesController@store')->middleware('auth:api'); //edit article
+      Route::delete('article/{id}', 'api\ArticlesController@destroy')->middleware('auth:api'); //delete article
+  });
+
+
+  //Comments middleware
+  Route::group([
+    'middleware' => 'auth:api'
+  ], function() {
+    Route::post('article/{id}/comment', 'api\CommentsController@store')->middleware('auth:api'); //post comments
+    Route::get('article/{id}/comments', 'api\ArticlesController@comments')->middleware('auth:api'); //post comments
+    Route::post('article/comment/edit/{id}', 'api\CommentsController@update')->middleware('auth:api'); //edit comments
+    //Route::get('article/comment/show/all/debug', 'api\CommentsController@index')->middleware('auth:api'); //Testing purposes
+  });
 
 
 Route::group([
