@@ -25,7 +25,7 @@ Route::group([
     Route::post('article/{id}/comment', 'api\CommentsController@store')->middleware('auth:api'); //post comments
     Route::get('article/{id}/comments', 'api\ArticlesController@comments')->middleware('auth:api'); //post comments
     Route::post('article/comment/edit/{id}', 'api\CommentsController@update')->middleware('auth:api'); //edit comments
-    Route::delete('article/comment/delete/{id}', 'api\CommentsController@update')->middleware('auth:api'); //DELETE comments
+    Route::delete('article/comment/delete/{id}', 'api\CommentsController@delete')->middleware('auth:api'); //DELETE comments
     //Route::get('article/comment/show/all/debug', 'api\CommentsController@index')->middleware('auth:api'); //Testing purposes
   });
 
