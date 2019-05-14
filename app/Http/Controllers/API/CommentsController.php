@@ -89,7 +89,7 @@ class CommentsController extends Controller
     public function destroy($id,Request $request)
     {
         $this->checkUser($request);
-        $comment = Comment::findOrFail($request->input('comment_id'));
+        $comment = Comment::findOrFail($id);
         if($comment->user_id == $this->user_data->id || $this->user_data->level<3){
             if($comment->delete())
                 return response()->json([
