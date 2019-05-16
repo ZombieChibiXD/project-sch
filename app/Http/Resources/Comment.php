@@ -31,7 +31,8 @@ class Comment extends ResourceCollection
                 'updated_at' => $object->updated_at,
             ];
         }
-        return $arrays;
+        $reversed = array_reverse($arrays, true);
+        return $reversed;
     }
     public function with($request) {
         return [
